@@ -5,17 +5,16 @@ const userRouter = express.Router();
 const jwt = require("jsonwebtoken");
 
 userRouter.post("/register", async (req, res) => {
-  const { email, password, age, locaiton } = req.body;
+  const { fullName, email, password } = req.body;
   try {
     bcrypt.hash(password, 5, async (err, hash) => {
       if (err) {
         return res.status(400).send({ message: err.message });
       }
       const user = await new UserModel({
+        fullName,
         email,
         password: hash,
-        age,
-        locaiton,
       });
       await user.save();
       res.status(200).send({ message: "registration successfull" });
@@ -36,8 +35,9 @@ userRouter.post("/login", async (req, res) => {
       // checking the password is correct or not
       bcrypt.compare(password, user[0].password, (err, result) => {
         if (err) return res.status(400).send({ message: err.message });
+        console.log("user", user);
         if (result) {
-          var token = jwt.sign({ data: "akash" }, "secret-key");
+          var token = jwt.sign({ userId: user[0]._id }, "secret-key");
           res.status(200).send({ message: "lgoin successfull", token: token });
         } else {
           res.status(400).send({ message: "password is wrong" });
